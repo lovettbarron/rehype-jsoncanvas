@@ -1,0 +1,37 @@
+{
+  "name": "rehype-jsoncanvas",
+  "version": "0.1.0",
+  "description": "rehype plugin to render inline json-canvas elements",
+  "license": "MIT",
+  "keywords": [
+    "document",
+    "hast",
+    "html",
+    "plugin",
+    "rehype",
+    "rehype-plugin",
+    "jsoncanvas",
+    "json-canvas",
+    "obsidianmd",
+    "obsidian"
+  ],
+  "repository": "lovettbarron/rehype-jsoncanvas",
+  "bugs": "https://github.com/lovettbarron/rehype-jsoncanvas/issues",
+  "author": "Andrew Lovett-Barron <alb@andrewlb.com> (https://andrewlb.com)",
+  "contributors": [
+    "Andrew Lovett-Barron <alb@andrewlb.com> (https://andrewlb.com)"
+  ],
+  "type": "module",
+  "exports": "./index.js,./example/*",
+  "files": [
+    "lib/",
+    "index.d.ts",
+    "index.js"
+  ],
+  "dependencies": {
+    "@trbn/jsoncanvas": "^1.0.6"
+  },
+  "devDependencies": {
+    "microbundle": "^0.15.1"
+  }
+}
