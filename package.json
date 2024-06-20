@@ -29,7 +29,11 @@
     "index.js"
   ],
   "dependencies": {
-    "@trbn/jsoncanvas": "^1.0.6"
+    "@trbn/jsoncanvas": "^1.0.6",
+    "hast": "^1.0.0",
+    "hast-util-from-html-isomorphic": "^2.0.0",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {
     "microbundle": "^0.15.1"

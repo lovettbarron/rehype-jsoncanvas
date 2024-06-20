@@ -18,3 +18,4 @@ Because obsidian
 - https://github.com/JS-DevTools/rehype-inline-svg
 - https://github.com/trbndev/jsoncanvas
 - https://github.com/Digital-Tvilling/react-jsoncanvas
+- https://github.com/r4ai/rehype-graphviz/
