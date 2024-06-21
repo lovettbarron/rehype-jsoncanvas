@@ -1,10 +1,9 @@
-import { jsonCanvas } from "./jsoncanvas";
+import { rehypeJsonCanvas } from "./jsoncanvas";
 
 export { Options } from "./options";
-export { jsonCanvas };
+export { rehypeJsonCanvas };
 
-// Export `inlineSVG` as the default export
-export default jsonCanvas;
+export default rehypeJsonCanvas;
 
 // CommonJS default export hack
 /* eslint-env commonjs */
