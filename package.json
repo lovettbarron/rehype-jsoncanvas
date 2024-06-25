@@ -37,6 +37,15 @@
     "./src/*.*",
     "./example/*.*"
   ],
+  "resolve": {
+    "extensions": [
+      ".ts",
+      ".tsx",
+      ".js",
+      ".md",
+      ".canvas"
+    ]
+  },
   "dependencies": {
     "@trbn/jsoncanvas": "^1.0.6",
     "hast": "^1.0.0",
