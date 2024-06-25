@@ -3,6 +3,7 @@ import type { ElementContent, Root } from "hast";
 import { fromHtmlIsomorphic } from "hast-util-from-html-isomorphic";
 import { visit } from "unist-util-visit";
 import fs from "fs";
+import { validate, render } from "./jsoncanvas";
 
 /*
 
@@ -28,10 +29,10 @@ Things decide:
 export const rehypeJsonCanvas: Plugin<[], Root> = () => {
   return (tree) => {
     visit(tree, "element", (node, index, pre) => {
-      console.log(node);
+      console.log(node, index, pre);
 
       // only match image embeds
-      // There is a context where this might not work re: embedded, eg. [[*.canvas]], and will need to build out an alternative
+      // There is a cconstontext where this might not work re: embedded, eg. [[*.canvas]], and will need to build out an alternative
       if (node.type != "image" || index === undefined) {
         return;
       }
@@ -46,17 +47,23 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
         // readfile
       }
 
-      const canvasHast = fromHtmlIsomorphic(canvas, {
-        fragment: true
-      })
+      let canvas;
 
-      pre. = {
-        ...pre.properties
-
+      if (validate(canvasMarkdown)) {
+        canvas = render(canvasMarkdown, {});
+      } else {
+        canvas = "<p>Not a properly formatted JsonCanvas</p>";
       }
 
+      const canvasHast = fromHtmlIsomorphic(canvas, {
+        fragment: true,
+      });
+      node.properties = {
+        ...node.properties,
+      };
+      node.tagName = "div";
+      node.children = canvasHast.children as ElementContent[];
+      index += 1;
     });
-
-
   };
 };

@@ -4,7 +4,7 @@
   "description": "rehype plugin to render inline json-canvas elements",
   "license": "MIT",
   "keywords": [
-    "document",
+    "documentexports npm package whole folder",
     "hast",
     "html",
     "plugin",
@@ -21,10 +21,14 @@
   "contributors": [
     "Andrew Lovett-Barron <alb@andrewlb.com> (https://andrewlb.com)"
   ],
+  "main": "src/index.ts",
   "type": "module",
-  "exports": "./index.js,./example/*",
+  "exports": {
+    ".": "./src/index.js",
+    "./example": "./example/*"
+  },
   "files": [
-    "lib/",
+    "src/",
     "index.d.ts",
     "index.js"
   ],

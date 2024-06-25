@@ -5,4 +5,7 @@ title: Test for embedding markdown
 ## Testing
 
 Test test
-![[example.canvas|example]]
+
+![[example.canvas]]
+
+![image](example.canvas)
