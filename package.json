@@ -21,16 +21,21 @@
   "contributors": [
     "Andrew Lovett-Barron <alb@andrewlb.com> (https://andrewlb.com)"
   ],
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://andrewlb.com/support"
+    },
+    {
+      "type": "patreon",
+      "url": "https:patreon.com/andrewlb"
+    }
+  ],
   "main": "src/index.ts",
   "type": "module",
-  "exports": {
-    ".": "./src/index.js",
-    "./example": "./example/*"
-  },
   "files": [
-    "src/",
-    "index.d.ts",
-    "index.js"
+    "./src/*.*",
+    "./example/*.*"
   ],
   "dependencies": {
     "@trbn/jsoncanvas": "^1.0.6",
