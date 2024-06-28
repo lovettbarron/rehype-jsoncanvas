@@ -1,7 +1,7 @@
 export function validate(canvas: string) {
   // Use the typescript lib to vlaidate?
-  return true;
+  return canvas || true;
 }
 export function render(canvas: string, options: object) {
-  return "<p>Rendered Canvas</p>";
+  return `<div>Rendered Canvas${canvas}${options}</div>`;
 }

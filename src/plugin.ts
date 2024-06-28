@@ -2,7 +2,7 @@ import type { Plugin } from "unified";
 import type { ElementContent, Root } from "hast";
 import { fromHtmlIsomorphic } from "hast-util-from-html-isomorphic";
 import { visit } from "unist-util-visit";
-import fs from "fs";
+// import fs from "fs";
 import { validate, render } from "./jsoncanvas";
 
 /*
@@ -32,15 +32,15 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
       console.log(node, index, pre);
 
       // only match image embeds
-      // There is a cconstontext where this might not work re: embedded, eg. [[*.canvas]], and will need to build out an alternative
-      if (node.type != "image" || index === undefined) {
+      if (node.tagName !== "img" || index === undefined) {
         return;
       }
 
-      const canvasPath = node.content as string;
+      // const nodeData = node.data ajec t;
+      const canvasPath = "jsoncanvas";
       const webcheck = canvasPath.trim().toLowerCase();
 
-      const canvasMarkdown = "TESTTEST";
+      const canvasMarkdown = "JSONCANVASTEST";
       if (webcheck.startsWith("https://")) {
         // Fetch
       } else {
@@ -52,7 +52,7 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
       if (validate(canvasMarkdown)) {
         canvas = render(canvasMarkdown, {});
       } else {
-        canvas = "<p>Not a properly formatted JsonCanvas</p>";
+        canvas = "<div>Not a properly formatted JsonCanvas</div>";
       }
 
       const canvasHast = fromHtmlIsomorphic(canvas, {
