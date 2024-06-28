@@ -1,7 +1,10 @@
-coverage/
 node_modules/
-*.d.ts
-*.log
-.DS_Store
-yarn.lock
-!/index.d.ts
+coverage/
+dist/
+/.buildcache
+/.vscode/settings.json
+/scratch
+/reports
+scratch
+*.tsbuildinfo
+.pnpm-debug.log
