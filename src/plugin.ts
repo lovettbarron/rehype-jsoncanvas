@@ -63,7 +63,7 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
       };
       node.tagName = "div";
       node.children = canvasHast.children as ElementContent[];
-      index += 1;
+      index = index += 1;
     });
   };
 };
