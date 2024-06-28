@@ -2,8 +2,9 @@ import type { Plugin } from "unified";
 import type { ElementContent, Root } from "hast";
 import { fromHtmlIsomorphic } from "hast-util-from-html-isomorphic";
 import { visit } from "unist-util-visit";
-// import fs from "fs";
+import fs from "fs";
 import { validate, render } from "./jsoncanvas";
+import JSONCanvas from "@trbn/jsoncanvas";
 
 /*
 
@@ -40,17 +41,24 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
       const canvasPath = "jsoncanvas";
       const webcheck = canvasPath.trim().toLowerCase();
 
-      const canvasMarkdown = "JSONCANVASTEST";
+      let canvasMarkdown = "Loading";
       if (webcheck.startsWith("https://")) {
-        // Fetch
+        fetch(canvasPath)
+          .then((res) => res.text())
+          .then((text) => (canvasMarkdown = text));
       } else {
-        // readfile
+        canvasMarkdown = fs.readFileSync(canvasPath, {
+          encoding: "utf8",
+          flag: "r",
+        });
       }
+
+      const jsonCanvasFromString = JSONCanvas.fromString(canvasMarkdown);
 
       let canvas;
 
-      if (validate(canvasMarkdown)) {
-        canvas = render(canvasMarkdown, {});
+      if (validate(jsonCanvasFromString)) {
+        canvas = render(jsonCanvasFromString, {});
       } else {
         canvas = "<div>Not a properly formatted JsonCanvas</div>";
       }
@@ -61,7 +69,7 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
       node.properties = {
         ...node.properties,
       };
-      node.tagName = "div";
+      node.tagName = "canvas";
       node.children = canvasHast.children as ElementContent[];
       index = index += 1;
     });

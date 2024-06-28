@@ -2,7 +2,7 @@
 
 ## What does this do?
 
-A rehype plugin that renders a json-canvas element, probably downstream from a markdown file.
+A rehype plugin that renders a [json-canvas](https://jsoncanvas.org/) element, probably downstream from a markdown file.
 
 ## Why does it do it?
 
