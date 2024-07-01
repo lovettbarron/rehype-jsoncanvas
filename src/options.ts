@@ -10,6 +10,13 @@ export interface Options {
   openEmbededInNewTab: boolean;
 
   /**
+   * Render mode. Determines the canvas output mode
+   *
+   * Defaults to canvas
+   */
+  renderMode: "svg" | "image" | "canvas";
+
+  /**
    * Canvas Buffer
    *
    * Defaults to 30
@@ -40,6 +47,7 @@ export function applyDefaults(config: Partial<Options> = {}): Options {
       config.openEmbededInNewTab === undefined
         ? true
         : config.openEmbededInNewTab,
+    renderMode: config.renderMode === undefined ? "canvas" : config.renderMode,
     canvasBuffer: config.canvasBuffer === undefined ? 30 : config.canvasBuffer,
     nodeStrokeWidth:
       config.nodeStrokeWidth === undefined ? 3 : config.nodeStrokeWidth,

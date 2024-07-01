@@ -15,12 +15,21 @@ export function validate(jsonCanvasData: JSONCanvas) {
 export function render(
   jsc: JSONCanvas,
   config?: Partial<Options>
-): String | null {
+): String | any | null {
   let options = applyDefaults(config);
   console.log("render", jsc);
 
+  const { canvasWidth, canvasHeight, offsetX, offsetY } =
+    calculateMinimumCanvasSize(jsc);
+
+  console.log(canvasWidth, canvasHeight, offsetX, offsetY);
+
   // Init Canvas objects
-  const { canvas, ctx } = initRender("jsc", 1280, 960);
+  const { canvas, ctx } = initRender(
+    "jsc",
+    canvasWidth + offsetX,
+    canvasHeight + offsetY
+  );
 
   if (canvas === null || ctx === null) return null;
 
@@ -37,11 +46,28 @@ export function render(
       drawEdge(canvas, ctx, toNode, fromNode, edge, options);
   });
 
-  return canvas.toDataURL();
+  if (options.renderMode == "svg" || options.renderMode == "canvas") {
+    if (typeof window !== "undefined") {
+      return canvas.toDataURL(); // This isnøt the right approach
+    } else {
+      return canvas && canvas.toBuffer(); // How to define as svg tho?
+    }
+  } else return canvas.toDataURL();
 }
 
-function initRender(id: string, width: number, height: number) {
-  const canvas = createCanvas(width, height);
+function initRender(
+  id: string,
+  width: number,
+  height: number,
+  config?: Partial<Options>
+) {
+  let options = applyDefaults(config);
+  const canvas = createCanvas(
+    width,
+    height,
+    options.renderMode === "svg" ? "svg" : undefined
+  ); // This basically sets up the render mode as SVG if its defined as such, which impacts how it is exprted as a buffer
+
   if (!canvas) {
     console.error(`Canvas element with id '${id}' not found.`);
     return { canvas: null, ctx: null };
@@ -71,17 +97,9 @@ async function drawEmbedded(
   if (node.type === "file" && canvas) {
     if (node.file.match(/\.(jpg|jpeg|png|gif)$/i)) {
       const img = await loadImage(node.file);
-      ctx.drawImage(
-        img,
-        0,
-        0,
-        node.width,
-        node.height,
-        node.x,
-        node.y,
-        node.width,
-        node.height
-      );
+      console.log("is the image loaded?", img.complete);
+      console.log("img", img);
+      ctx.drawImage(img, node.x, node.y);
     }
   }
 }
@@ -226,4 +244,23 @@ function drawEdge(
     ctx.stroke();
     ctx.fill();
   }
+}
+
+function calculateMinimumCanvasSize(canvas: JSONCanvas) {
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
+
+  canvas.getNodes().forEach((node) => {
+    minX = Math.min(minX, node.x);
+    minY = Math.min(minY, node.y);
+    maxX = Math.max(maxX, node.x + node.width);
+    maxY = Math.max(maxY, node.y + node.height);
+  });
+
+  const canvasWidth = maxX - minX;
+  const canvasHeight = maxY - minY;
+
+  return { canvasWidth, canvasHeight, offsetX: -minX, offsetY: -minY };
 }
