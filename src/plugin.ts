@@ -62,9 +62,12 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
 
       console.log(canvas);
 
-      const canvasHast = fromHtmlIsomorphic(`<img alt='' src='${canvas}' />`, {
-        fragment: true,
-      });
+      const canvasHast = fromHtmlIsomorphic(
+        `<img alt='' src='${canvas}' style='width:100%' />`,
+        {
+          fragment: true,
+        }
+      );
       node.properties = {
         ...node.properties,
       };

@@ -1,5 +1,7 @@
 # rehype-jsoncanvas
 
+NOTE: This project is currently in development/prove of concept stage and isn't usable in a project. But feel free to fork, PR, or add issues if you have requests.
+
 ## What does this do?
 
 A rehype plugin that renders a [json-canvas](https://jsoncanvas.org/) element, probably downstream from a markdown file.
@@ -15,6 +17,19 @@ Rehype is a toolkit in the unified.js ecosystem that works to parse html trees a
 Parses the html content (If it's from markdown, usually after the markdown has been translates), then renders a canvas
 
 ## Use
+
+This is an example of using Unified to render out the base.md markdown. Basically you need to process the markdown first, then transform the markdown rehype. The plugin will then look for rendered images with a .canvas extension to render out the jsonCanvas.
+
+```js
+const md = await unified()
+  .use(parser)
+  .use(mdast2hast)
+  .use(remarkGfm)
+  .use(remarkRehype)
+  .use(rehypeJsonCanvas)
+  .use(compiler, production)
+  .process(markdown);
+```
 
 See [base.md](example/base.md) for an examples. A simple react app lives [in this repo](hhttps://github.com/lovettbarron/shims/tree/main/rehype-jsoncanvas) to see how it might be used.
 
