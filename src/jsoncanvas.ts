@@ -1,13 +1,23 @@
 import { JSONCanvas, Edge, GenericNode } from "@trbn/jsoncanvas";
-import { createCanvas, Canvas, CanvasRenderingContext2D } from "canvas";
+import { applyDefaults, Options } from "./options";
+import {
+  createCanvas,
+  loadImage,
+  Canvas,
+  CanvasRenderingContext2D,
+} from "canvas";
 
 export function validate(jsonCanvasData: JSONCanvas) {
   // Use the typescript lib to vlaidate?
   console.log(jsonCanvasData.toString());
   return true;
 }
-export function render(jsc: JSONCanvas, options: object): String | null {
-  console.log("render", jsc, options);
+export function render(
+  jsc: JSONCanvas,
+  config?: Partial<Options>
+): String | null {
+  let options = applyDefaults(config);
+  console.log("render", jsc);
 
   // Init Canvas objects
   const { canvas, ctx } = initRender("jsc", 1280, 960);
@@ -16,7 +26,7 @@ export function render(jsc: JSONCanvas, options: object): String | null {
 
   // Draw nodes
   jsc.getNodes().forEach((node) => {
-    drawNode(canvas, ctx, node);
+    drawNode(canvas, ctx, node, options);
   });
 
   // Draw Edges
@@ -24,7 +34,7 @@ export function render(jsc: JSONCanvas, options: object): String | null {
     const fromNode = jsc.getNodes().find((node) => node.id === edge.fromNode);
     const toNode = jsc.getNodes().find((node) => node.id === edge.toNode);
     if (toNode !== undefined && fromNode !== undefined)
-      drawEdge(canvas, ctx, toNode, fromNode, edge);
+      drawEdge(canvas, ctx, toNode, fromNode, edge, options);
   });
 
   return canvas.toDataURL();
@@ -53,28 +63,61 @@ function initRender(id: string, width: number, height: number) {
   };
 }
 
-function drawNode(
+async function drawEmbedded(
   canvas: Canvas,
   ctx: CanvasRenderingContext2D,
   node: GenericNode | any
 ) {
+  if (node.type === "file" && canvas) {
+    if (node.file.match(/\.(jpg|jpeg|png|gif)$/i)) {
+      const img = await loadImage(node.file);
+      ctx.drawImage(
+        img,
+        0,
+        0,
+        node.width,
+        node.height,
+        node.x,
+        node.y,
+        node.width,
+        node.height
+      );
+    }
+  }
+}
+
+async function drawNode(
+  canvas: Canvas,
+  ctx: CanvasRenderingContext2D,
+  node: GenericNode | any,
+  config?: Partial<Options>
+) {
+  let options = applyDefaults(config);
+
   console.log("Drawing Node", node);
 
   ctx.fillStyle = "rgba(255, 255, 255, .5)";
+  ctx.strokeStyle = "rgba(0,0,0,1)";
 
   ctx.beginPath();
   if (node.color === "1") {
     ctx.fillStyle = "rgba(255, 0, 0, .5)";
+    ctx.strokeStyle = "rgba(255,0,0,1)";
   } else if (node.color === "2") {
     ctx.fillStyle = "rgba(255, 100, 0, .5)";
+    ctx.strokeStyle = "rgba(255,100,0,1)";
   } else if (node.color === "3") {
     ctx.fillStyle = "rgba(255, 255, 0, .5)";
+    ctx.strokeStyle = "rgba(255,255,0,1)";
   } else if (node.color === "4") {
     ctx.fillStyle = "rgba(0, 255, 100, .5)";
+    ctx.strokeStyle = "rgba(0,100,0,1)";
   } else if (node.color === "5") {
     ctx.fillStyle = "rgba(0, 255, 255, .5)";
+    ctx.strokeStyle = "rgba(0,255,255,1)";
   } else if (node.color === "6") {
     ctx.fillStyle = "rgba(100, 10, 100, .5)";
+    ctx.strokeStyle = "rgba(100,10,100,1)";
   }
   ctx.roundRect(
     node.x + canvas.width / 2,
@@ -83,11 +126,14 @@ function drawNode(
     node.height,
     [5]
   );
+
+  drawEmbedded(canvas, ctx, node);
+  ctx.lineWidth = options.nodeStrokeWidth;
   ctx.stroke();
   ctx.fill();
   ctx.closePath();
 
-  ctx.fillStyle = "rgba(0, 0, 0, .5)";
+  ctx.fillStyle = "rgba(0, 0, 0, 1)";
   if (node.label) {
     ctx.fillText(
       node.label,
@@ -110,8 +156,14 @@ function drawEdge(
   ctx: CanvasRenderingContext2D,
   toNode: GenericNode,
   fromNode: GenericNode,
-  edge: Edge | any
+  edge: Edge | any,
+  config?: Partial<Options>
 ) {
+  let options = applyDefaults(config);
+
+  ctx.lineWidth = options.lineStrokeWidth;
+  ctx.strokeStyle = "rgba(0,0,0,1)";
+
   if (fromNode && toNode) {
     let startX =
       fromNode.x +
@@ -148,12 +200,13 @@ function drawEdge(
 
     ctx.beginPath();
     ctx.moveTo(startX, startY);
-    ctx.lineTo(endX, endY);
+    // ctx.lineTo(endX, endY);
+    ctx.bezierCurveTo(startX, endY, endX, startY, endX, endY);
     ctx.stroke();
     ctx.closePath();
 
     // Draw arrowhead
-    const headlen = 10; // length of head in pixels
+    const headlen = 20; // length of head in pixels
     const angle = Math.atan2(endY - startY, endX - startX);
     ctx.beginPath();
     ctx.moveTo(endX, endY);

@@ -8,6 +8,27 @@ export interface Options {
    * Defaults to true
    */
   openEmbededInNewTab: boolean;
+
+  /**
+   * Canvas Buffer
+   *
+   * Defaults to 30
+   */
+  canvasBuffer: number;
+
+  /**
+   * Canvas node stroke width
+   *
+   * Defaults to 3
+   */
+  nodeStrokeWidth: number;
+
+  /**
+   * Canvas line stroke width
+   *
+   * Defaults to 5
+   */
+  lineStrokeWidth: number;
 }
 
 /**
@@ -19,5 +40,10 @@ export function applyDefaults(config: Partial<Options> = {}): Options {
       config.openEmbededInNewTab === undefined
         ? true
         : config.openEmbededInNewTab,
+    canvasBuffer: config.canvasBuffer === undefined ? 30 : config.canvasBuffer,
+    nodeStrokeWidth:
+      config.nodeStrokeWidth === undefined ? 3 : config.nodeStrokeWidth,
+    lineStrokeWidth:
+      config.lineStrokeWidth === undefined ? 5 : config.lineStrokeWidth,
   };
 }
