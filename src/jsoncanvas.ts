@@ -1,18 +1,13 @@
 import { JSONCanvas, Edge, GenericNode } from "@trbn/jsoncanvas";
-import { h } from "hastscript";
-import { toHtml } from "hast-util-to-html";
-const { createCanvas, loadImage } = require("canvas");
+import { createCanvas, Canvas, CanvasRenderingContext2D } from "canvas";
 
 export function validate(jsonCanvasData: JSONCanvas) {
   // Use the typescript lib to vlaidate?
   console.log(jsonCanvasData.toString());
   return true;
 }
-export function render(
-  jsc: JSONCanvas,
-  options: object
-): HTMLCanvasElement | null {
-  console.log("render", jsc);
+export function render(jsc: JSONCanvas, options: object): String | null {
+  console.log("render", jsc, options);
 
   // Init Canvas objects
   const { canvas, ctx } = initRender("jsc", 800, 600);
@@ -28,14 +23,15 @@ export function render(
   jsc.getEdges().forEach((edge) => {
     const fromNode = jsc.getNodes().find((node) => node.id === edge.fromNode);
     const toNode = jsc.getNodes().find((node) => node.id === edge.toNode);
-    drawEdge(canvas, ctx, toNode, fromNode, edge);
+    if (toNode !== undefined && fromNode !== undefined)
+      drawEdge(canvas, ctx, toNode, fromNode, edge);
   });
 
-  return canvas;
+  return canvas.toDataURL();
 }
 
 function initRender(id: string, width: number, height: number) {
-  const canvas = createCanvas(width, height) as HTMLCanvasElement;
+  const canvas = createCanvas(width, height);
   if (!canvas) {
     console.error(`Canvas element with id '${id}' not found.`);
     return { canvas: null, ctx: null };
@@ -58,7 +54,7 @@ function initRender(id: string, width: number, height: number) {
 }
 
 function drawNode(
-  canvas: HTMLCanvasElement,
+  canvas: Canvas,
   ctx: CanvasRenderingContext2D,
   node: GenericNode | any
 ) {
@@ -90,7 +86,7 @@ function drawNode(
 }
 
 function drawEdge(
-  canvas: HTMLCanvasElement,
+  canvas: Canvas,
   ctx: CanvasRenderingContext2D,
   toNode: GenericNode,
   fromNode: GenericNode,
