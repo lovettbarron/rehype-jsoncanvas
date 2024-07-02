@@ -1,22 +1,29 @@
 import { JSONCanvas, Edge, GenericNode } from "@trbn/jsoncanvas";
-import { applyDefaults, Options } from "./options";
+
+import { unified } from "unified";
+import parse from "remark-parse";
+import remark2rehype from "remark-rehype";
+import rehypeStringify from "rehype-stringify";
+import html2canvas from "html2canvas";
+
 import {
   createCanvas,
   loadImage,
   Canvas,
   CanvasRenderingContext2D,
 } from "canvas";
+import { applyDefaults, Options } from "./options";
 
 export function validate(jsonCanvasData: JSONCanvas) {
   // Use the typescript lib to vlaidate?
-  console.log(jsonCanvasData.toString());
+  console.log("Validate!", jsonCanvasData);
   return true;
 }
 export function render(
   jsc: JSONCanvas,
   config?: Partial<Options>
 ): String | any | null {
-  let options = applyDefaults(config);
+  const options = applyDefaults(config);
   console.log("render", jsc);
 
   const { canvasWidth, canvasHeight, offsetX, offsetY } =
@@ -61,7 +68,8 @@ function initRender(
   height: number,
   config?: Partial<Options>
 ) {
-  let options = applyDefaults(config);
+  const options = applyDefaults(config);
+
   const canvas = createCanvas(
     width,
     height,
@@ -82,26 +90,12 @@ function initRender(
   }
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = `32px`;
 
   return {
     canvas,
     ctx,
   };
-}
-
-async function drawEmbedded(
-  canvas: Canvas,
-  ctx: CanvasRenderingContext2D,
-  node: GenericNode | any
-) {
-  if (node.type === "file" && canvas) {
-    if (node.file.match(/\.(jpg|jpeg|png|gif)$/i)) {
-      const img = await loadImage(node.file);
-      console.log("is the image loaded?", img.complete);
-      console.log("img", img);
-      ctx.drawImage(img, node.x, node.y);
-    }
-  }
 }
 
 async function drawNode(
@@ -110,7 +104,7 @@ async function drawNode(
   node: GenericNode | any,
   config?: Partial<Options>
 ) {
-  let options = applyDefaults(config);
+  const options = applyDefaults(config);
 
   console.log("Drawing Node", node);
 
@@ -146,6 +140,8 @@ async function drawNode(
   );
 
   drawEmbedded(canvas, ctx, node);
+  drawMarkdownEmbed(canvas, ctx, node);
+
   ctx.lineWidth = options.nodeStrokeWidth;
   ctx.stroke();
   ctx.fill();
@@ -177,7 +173,7 @@ function drawEdge(
   edge: Edge | any,
   config?: Partial<Options>
 ) {
-  let options = applyDefaults(config);
+  const options = applyDefaults(config);
 
   ctx.lineWidth = options.lineStrokeWidth;
   ctx.strokeStyle = "rgba(0,0,0,1)";
@@ -219,13 +215,33 @@ function drawEdge(
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     // ctx.lineTo(endX, endY);
-    ctx.bezierCurveTo(startX, endY, endX, startY, endX, endY);
+    const cp1 = {
+      x: startX,
+      y: endY,
+    };
+
+    const cp2 = {
+      x: endX,
+      y: startY,
+    };
+
+    ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, endX, endY);
     ctx.stroke();
     ctx.closePath();
 
+    const t = 1.0; // At the end of the curve
+    const dx =
+      3 * (1 - t) * (1 - t) * (cp1.x - startX) +
+      6 * (1 - t) * t * (cp2.x - cp1.x) +
+      3 * t * t * (endX - cp2.x);
+    const dy =
+      3 * (1 - t) * (1 - t) * (cp1.y - startY) +
+      6 * (1 - t) * t * (cp2.y - cp1.y) +
+      3 * t * t * (endY - cp2.y);
+    const angle = Math.atan2(dy, dx);
+
     // Draw arrowhead
     const headlen = 20; // length of head in pixels
-    const angle = Math.atan2(endY - startY, endX - startX);
     ctx.beginPath();
     ctx.moveTo(endX, endY);
     ctx.lineTo(
@@ -263,4 +279,81 @@ function calculateMinimumCanvasSize(canvas: JSONCanvas) {
   const canvasHeight = maxY - minY;
 
   return { canvasWidth, canvasHeight, offsetX: -minX, offsetY: -minY };
+}
+
+// This renders out the images
+async function drawEmbedded(
+  canvas: Canvas,
+  ctx: CanvasRenderingContext2D,
+  node: GenericNode | any
+) {
+  if (node.type === "file" && canvas) {
+    if (node.file.match(/\.(jpg|jpeg|png|gif)$/i)) {
+      const img = await loadImage(node.file);
+      console.log("is the image loaded?", img.complete);
+      console.log("img", img);
+
+      const aspect = img.width / img.height;
+
+      ctx.drawImage(
+        img,
+        0,
+        0,
+        img.width,
+        img.height,
+        node.width - node.width / aspect,
+        node.height - node.height / aspect,
+        node.width / aspect,
+        node.height / aspect
+      );
+    }
+  }
+}
+
+// This renders out the images
+async function drawMarkdownEmbed(
+  canvas: Canvas,
+  ctx: CanvasRenderingContext2D,
+  node: GenericNode | any
+) {
+  if (node.type === "file" && canvas) {
+    if (node.file.match(/\.(md|mdx)$/i)) {
+      const resp = await fetch(node.file);
+      const mdFile = await resp.text();
+      const renderedMarkdown = await unified()
+        .use(parse)
+        .use(remark2rehype) // Convert Markdown to HTML
+        .use(rehypeStringify)
+        .process(mdFile);
+
+      const htmlString = String(renderedMarkdown);
+      const div = document.createElement("div");
+      div.innerHTML = htmlString;
+
+      div.style.width = `${node.width}px`;
+      div.style.height = `${node.height}px`;
+      div.style.position = "absolute";
+      div.style.left = "-9999px";
+      document.body.appendChild(div);
+
+      // Use html2canvas to render the div to an image
+      const canvasElement = await html2canvas(div);
+      const img = new Image(node.width, node.height) as any;
+      img.src = canvasElement.toDataURL();
+      img.onload = () => {
+        ctx.drawImage(
+          img,
+          node.x + canvas.width / 2,
+          node.y + canvas.height / 2,
+          node.width,
+          node.height
+        );
+      };
+
+      console.log("Markdown", img);
+
+      // Cleanup
+      document.body.removeChild(div);
+    }
+  }
 }
