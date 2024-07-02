@@ -9,7 +9,7 @@ export function validate(jsonCanvasData: JSONCanvas) {
   return true;
 }
 
-import { drawEmbedded, drawMarkdownEmbed } from "./embed";
+import { drawEmbedded, drawMarkdownEmbed, checkImagesLoaded } from "./embed";
 
 export function render(
   jsc: JSONCanvas,
@@ -45,11 +45,17 @@ export function render(
       drawEdge(canvas, ctx, toNode, fromNode, edge, options);
   });
 
+  return checkImagesLoaded(() => renderToBuffer(canvas));
+}
+
+function renderToBuffer(canvas: Canvas, config?: Partial<Options>) {
+  const options = applyDefaults(config);
+
   if (options.renderMode == "svg" || options.renderMode == "canvas") {
     if (typeof window !== "undefined") {
-      return canvas.toDataURL(); // This isnøt the right approach
+      return canvas.toDataURL(); // This isn't the right approach
     } else {
-      return canvas && canvas.toBuffer(); // How to define as svg tho?
+      return canvas && canvas.toBuffer(); // svg declaration is on canvas
     }
   } else return canvas.toDataURL();
 }
