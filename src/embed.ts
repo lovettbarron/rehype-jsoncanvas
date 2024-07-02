@@ -4,14 +4,9 @@ import remark2rehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
 import html2canvas from "html2canvas";
 
-import { JSONCanvas, Edge, GenericNode } from "@trbn/jsoncanvas";
+import { GenericNode } from "@trbn/jsoncanvas";
 
-import {
-  createCanvas,
-  loadImage,
-  Canvas,
-  CanvasRenderingContext2D,
-} from "canvas";
+import { loadImage, Canvas, CanvasRenderingContext2D } from "canvas";
 //   import { applyDefaults, Options } from "./options";
 
 // This renders out the images

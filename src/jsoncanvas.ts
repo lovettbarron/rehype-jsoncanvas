@@ -1,11 +1,6 @@
 import { JSONCanvas, Edge, GenericNode } from "@trbn/jsoncanvas";
 
-import {
-  createCanvas,
-  loadImage,
-  Canvas,
-  CanvasRenderingContext2D,
-} from "canvas";
+import { createCanvas, Canvas, CanvasRenderingContext2D } from "canvas";
 import { applyDefaults, Options } from "./options";
 
 export function validate(jsonCanvasData: JSONCanvas) {
