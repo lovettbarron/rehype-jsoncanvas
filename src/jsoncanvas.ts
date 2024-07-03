@@ -1,7 +1,34 @@
+import * as path from "path";
+import { Processor, Transformer } from "unified";
+import { Node, Parent } from "unist";
+import { VFile } from "vfile";
+import { h, s } from "hastscript";
+import { Element as SvgElement } from "hast-format";
+
 import { JSONCanvas, Edge, GenericNode } from "@trbn/jsoncanvas";
 
-import { createCanvas, Canvas, CanvasRenderingContext2D } from "canvas";
 import { applyDefaults, Options } from "./options";
+
+import { drawEmbedded, drawMarkdownEmbed, checkImagesLoaded } from "./embed";
+
+function calculateMinimumCanvasSize(canvas: JSONCanvas) {
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
+
+  canvas.getNodes().forEach((node) => {
+    minX = Math.min(minX, node.x);
+    minY = Math.min(minY, node.y);
+    maxX = Math.max(maxX, node.x + node.width);
+    maxY = Math.max(maxY, node.y + node.height);
+  });
+
+  const canvasWidth = maxX - minX;
+  const canvasHeight = maxY - minY;
+
+  return { canvasWidth, canvasHeight, offsetX: -minX, offsetY: -minY };
+}
 
 export function validate(jsonCanvasData: JSONCanvas) {
   // Use the typescript lib to vlaidate?
@@ -9,32 +36,23 @@ export function validate(jsonCanvasData: JSONCanvas) {
   return true;
 }
 
-import { drawEmbedded, drawMarkdownEmbed, checkImagesLoaded } from "./embed";
-
 export function render(
   jsc: JSONCanvas,
   config?: Partial<Options>
 ): String | any | null {
   const options = applyDefaults(config);
-  console.log("render", jsc);
 
   const { canvasWidth, canvasHeight, offsetX, offsetY } =
     calculateMinimumCanvasSize(jsc);
 
-  console.log(canvasWidth, canvasHeight, offsetX, offsetY);
-
   // Init Canvas objects
-  const { canvas, ctx } = initRender(
-    "jsc",
-    canvasWidth + offsetX,
-    canvasHeight + offsetY
-  );
+  const svg = initRender("jsc", canvasWidth + offsetX, canvasHeight + offsetY);
 
-  if (canvas === null || ctx === null) return null;
+  if (svg === null) return null;
 
   // Draw nodes
   jsc.getNodes().forEach((node) => {
-    drawNode(canvas, ctx, node, options);
+    drawNode(svg, node, options);
   });
 
   // Draw Edges
@@ -42,103 +60,91 @@ export function render(
     const fromNode = jsc.getNodes().find((node) => node.id === edge.fromNode);
     const toNode = jsc.getNodes().find((node) => node.id === edge.toNode);
     if (toNode !== undefined && fromNode !== undefined)
-      drawEdge(canvas, ctx, toNode, fromNode, edge, options);
+      drawEdge(svg, toNode, fromNode, edge, options);
   });
 
   return checkImagesLoaded(() => renderToBuffer(canvas));
 }
 
-function renderToBuffer(canvas: Canvas, config?: Partial<Options>) {
+function renderToBuffer(config?: Partial<Options>) {
   const options = applyDefaults(config);
-
-  if (options.renderMode == "svg" || options.renderMode == "canvas") {
-    if (typeof window !== "undefined") {
-      return canvas.toDataURL(); // This isn't the right approach
-    } else {
-      return canvas && canvas.toBuffer(); // svg declaration is on canvas
-    }
-  } else return canvas.toDataURL();
+  console.log;
+  return null;
 }
 
 function initRender(
-  id: string,
   width: number,
   height: number,
   config?: Partial<Options>
-) {
+): SvgElement {
   const options = applyDefaults(config);
 
-  const canvas = createCanvas(
+  const BASE_SVG_PROPS = {
+    version: "1.1",
+    xmlns: "http://www.w3.org/2000/svg",
+    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+    "stroke-linecap": "round",
+    "stroke-linejoin": "round",
+    "stroke-width": "0",
+    "fill-rule": "evenodd",
+    fill: "currentColor",
+    stroke: "currentColor",
+  };
+
+  const props = {
+    ...BASE_SVG_PROPS,
     width,
     height,
-    options.renderMode === "svg" ? "svg" : undefined
-  ); // This basically sets up the render mode as SVG if its defined as such, which impacts how it is exprted as a buffer
-
-  if (!canvas) {
-    console.error(`Canvas element with id '${id}' not found.`);
-    return { canvas: null, ctx: null };
-  }
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    console.error("Unable to get canvas context.");
-    return { canvas, ctx: null };
-  }
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.font = `32px`;
-
-  return {
-    canvas,
-    ctx,
+    viewBox: `0 0 ${width} ${height}`,
   };
+
+  const svg = s("svg", props);
+
+  return;
+  svg;
 }
 
 async function drawNode(
-  canvas: Canvas,
-  ctx: CanvasRenderingContext2D,
+  svg: SvgElement,
   node: GenericNode | any,
   config?: Partial<Options>
 ) {
   const options = applyDefaults(config);
 
-  console.log("Drawing Node", node);
+  let fillStyle = "rgba(255, 255, 255, .5)";
+  let strokeStyle = "rgba(0,0,0,1)";
 
-  ctx.fillStyle = "rgba(255, 255, 255, .5)";
-  ctx.strokeStyle = "rgba(0,0,0,1)";
-
-  ctx.beginPath();
   if (node.color === "1") {
-    ctx.fillStyle = "rgba(255, 0, 0, .5)";
-    ctx.strokeStyle = "rgba(255,0,0,1)";
+    fillStyle = "rgba(255, 0, 0, .5)";
+    strokeStyle = "rgba(255,0,0,1)";
   } else if (node.color === "2") {
-    ctx.fillStyle = "rgba(255, 100, 0, .5)";
-    ctx.strokeStyle = "rgba(255,100,0,1)";
+    fillStyle = "rgba(255, 100, 0, .5)";
+    strokeStyle = "rgba(255,100,0,1)";
   } else if (node.color === "3") {
-    ctx.fillStyle = "rgba(255, 255, 0, .5)";
-    ctx.strokeStyle = "rgba(255,255,0,1)";
+    fillStyle = "rgba(255, 255, 0, .5)";
+    strokeStyle = "rgba(255,255,0,1)";
   } else if (node.color === "4") {
-    ctx.fillStyle = "rgba(0, 255, 100, .5)";
-    ctx.strokeStyle = "rgba(0,100,0,1)";
+    fillStyle = "rgba(0, 255, 100, .5)";
+    strokeStyle = "rgba(0,100,0,1)";
   } else if (node.color === "5") {
-    ctx.fillStyle = "rgba(0, 255, 255, .5)";
-    ctx.strokeStyle = "rgba(0,255,255,1)";
+    fillStyle = "rgba(0, 255, 255, .5)";
+    strokeStyle = "rgba(0,255,255,1)";
   } else if (node.color === "6") {
-    ctx.fillStyle = "rgba(100, 10, 100, .5)";
-    ctx.strokeStyle = "rgba(100,10,100,1)";
+    fillStyle = "rgba(100, 10, 100, .5)";
+    strokeStyle = "rgba(100,10,100,1)";
   }
-  ctx.roundRect(
-    node.x + canvas.width / 2,
-    node.y + canvas.height / 2,
-    node.width,
-    node.height,
-    [5]
-  );
 
-  drawEmbedded(canvas, ctx, node);
-  drawMarkdownEmbed(canvas, ctx, node);
+  const rect = s("rect", {
+    x: node.x + svg.properties?.width / 2,
+    y: node.y + svg.properties?.height / 2,
+    width: node.width,
+    height: node.height,
+    rx: 5,
+    ry: 5,
+  });
+
+  drawEmbedded(svg, node);
+  drawMarkdownEmbed(svg, node);
 
   ctx.lineWidth = options.nodeStrokeWidth;
   ctx.stroke();
@@ -161,11 +167,12 @@ async function drawNode(
       node.y + 40 + canvas.height / 2
     );
   }
+
+  svg.children.push(rect);
 }
 
 function drawEdge(
-  canvas: Canvas,
-  ctx: CanvasRenderingContext2D,
+  svg: SvgElement,
   toNode: GenericNode,
   fromNode: GenericNode,
   edge: Edge | any,
@@ -213,6 +220,8 @@ function drawEdge(
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     // ctx.lineTo(endX, endY);
+
+    // Change the control point logic based on fromSide/toSide
     const cp1 = {
       x: startX,
       y: endY,
@@ -258,23 +267,6 @@ function drawEdge(
     ctx.stroke();
     ctx.fill();
   }
-}
 
-function calculateMinimumCanvasSize(canvas: JSONCanvas) {
-  let minX = Infinity,
-    minY = Infinity,
-    maxX = -Infinity,
-    maxY = -Infinity;
-
-  canvas.getNodes().forEach((node) => {
-    minX = Math.min(minX, node.x);
-    minY = Math.min(minY, node.y);
-    maxX = Math.max(maxX, node.x + node.width);
-    maxY = Math.max(maxY, node.y + node.height);
-  });
-
-  const canvasWidth = maxX - minX;
-  const canvasHeight = maxY - minY;
-
-  return { canvasWidth, canvasHeight, offsetX: -minX, offsetY: -minY };
+  svg.children.push(arrow);
 }
