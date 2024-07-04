@@ -1,8 +1,4 @@
-import * as path from "path";
-import { Processor, Transformer } from "unified";
-import { Node, Parent } from "unist";
-import { VFile } from "vfile";
-import { h, s } from "hastscript";
+import { s } from "hastscript";
 import { Element } from "hast";
 
 import { JSONCanvas, Edge, GenericNode } from "@trbn/jsoncanvas";
@@ -78,14 +74,14 @@ function initRender(
   config?: Partial<Options>
 ): Element {
   const options = applyDefaults(config);
-
+  console.log(options);
   const BASE_SVG_PROPS = {
     version: "1.1",
     xmlns: "http://www.w3.org/2000/svg",
     "xmlns:xlink": "http://www.w3.org/1999/xlink",
     "stroke-linecap": "round",
     "stroke-linejoin": "round",
-    "stroke-width": "0",
+    "stroke-width": options.lineStrokeWidth,
     "fill-rule": "evenodd",
     fill: "currentColor",
     stroke: "currentColor",
@@ -93,13 +89,13 @@ function initRender(
 
   const props = {
     ...BASE_SVG_PROPS,
-    width,
-    height,
+    width: width as number,
+    height: height as number,
     viewBox: `0 0 ${width} ${height}`,
   };
 
   const svg = s("svg", props);
-
+  svg.properties;
   return svg;
 }
 
@@ -136,8 +132,8 @@ async function drawNode(
   const group = s("g");
 
   const rect = s("rect", {
-    x: node.x + svg.properties.width / 2,
-    y: node.y + svg.properties.height / 2,
+    x: node.x + <number>svg.properties!.width / 2,
+    y: node.y + <number>svg.properties!.height / 2,
     width: node.width,
     height: node.height,
     rx: 5,
@@ -180,39 +176,43 @@ function drawEdge(
   config?: Partial<Options>
 ) {
   const options = applyDefaults(config);
-  if (svg === null || svg == undefined) return null;
-  else if (fromNode && toNode) {
+  if (svg === null || svg == undefined) return;
+
+  const cWidth = <number>svg.properties.width || (1 as number);
+  const cHeight = <number>svg.properties.height || (1 as number);
+
+  if (fromNode && toNode) {
     let startX =
       fromNode.x +
       (edge.fromSide == "top" || edge.fromSide == "bottom"
         ? fromNode.width / 2
         : fromNode.width) +
-      svg.properties!.width / 2;
-    let startY = fromNode.y + fromNode.height / 2 + svg.properties.height / 2;
+      cWidth / 2;
+    let startY = fromNode.y + fromNode.height / 2 + cHeight / 2;
     let endX =
       toNode.x +
       (edge.toSide == "top" || edge.toSide == "bottom"
         ? toNode.width / 2
         : toNode.width) +
-      svg.properties.width / 2;
-    let endY = toNode.y + toNode.height / 2 + svg.properties.height / 2;
+      cWidth / 2;
+    let endY = toNode.y + toNode.height / 2 + cHeight / 2;
 
     if (edge.fromSide === "left") {
-      startX = fromNode.x + svg.properties.width / 2;
+      startX = fromNode.x + cWidth / 2;
     } else if (edge.fromSide === "top") {
-      startY = fromNode.y + svg.properties.height / 2;
+      startY = fromNode.y + cHeight / 2;
     } else if (edge.fromSide === "bottom") {
-      startY = fromNode.y + fromNode.height + svg.properties.height / 2;
+      startY = fromNode.y + fromNode.height + cHeight / 2;
     }
 
     if (edge.toSide === "right") {
-      endX = toNode.x + toNode.width + svg.properties.width / 2;
+      endX = toNode.x + toNode.width + cWidth / 2;
     } else if (edge.toSide === "top") {
-      endY = toNode.y + svg.properties.height / 2;
+      endY = toNode.y + cHeight / 2;
     } else if (edge.toSide === "bottom") {
-      endY = toNode.y + toNode.height + svg.properties.height / 2;
+      endY = toNode.y + toNode.height + cHeight / 2;
     } else if (edge.toSide === "left") {
-      endX = toNode.x + svg.properties.width / 2;
+      endX = toNode.x + cWidth / 2;
     }
 
     // Change the control point logic based on fromSide/toSide

@@ -1,7 +1,6 @@
 import { s } from "hastscript";
 import { Element } from "hast";
 
-import { toHtml } from "hast-util-to-html";
 import { fromMarkdown } from "mdast-util-from-markdown";
 import { toHast } from "mdast-util-to-hast";
 
@@ -45,7 +44,6 @@ export async function drawMarkdownEmbed(svg: Element, node: GenericNode | any) {
 
       const mdast = fromMarkdown(mdFile);
       const hast = toHast(mdast);
-      const html = toHtml(hast);
 
       // Ref: https://stackoverflow.com/questions/45518545/svg-foreignobject-not-showing-on-any-browser-why
       const embed = s("foreignObject", {
