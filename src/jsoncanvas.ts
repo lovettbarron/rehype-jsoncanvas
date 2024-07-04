@@ -3,7 +3,7 @@ import { Processor, Transformer } from "unified";
 import { Node, Parent } from "unist";
 import { VFile } from "vfile";
 import { h, s } from "hastscript";
-import { Element as SvgElement } from "hast-format";
+import { Element } from "hast";
 
 import { JSONCanvas, Edge, GenericNode } from "@trbn/jsoncanvas";
 
@@ -46,7 +46,7 @@ export function render(
     calculateMinimumCanvasSize(jsc);
 
   // Init Canvas objects
-  const svg = initRender("jsc", canvasWidth + offsetX, canvasHeight + offsetY);
+  const svg = initRender(canvasWidth + offsetX, canvasHeight + offsetY);
 
   if (svg === null) return null;
 
@@ -63,12 +63,12 @@ export function render(
       drawEdge(svg, toNode, fromNode, edge, options);
   });
 
-  return checkImagesLoaded(() => renderToBuffer(canvas));
+  return checkImagesLoaded(() => renderToBuffer(svg));
 }
 
-function renderToBuffer(config?: Partial<Options>) {
+function renderToBuffer(svg: Element, config?: Partial<Options>) {
   const options = applyDefaults(config);
-  console.log;
+  console.log("Rendering", svg, options);
   return null;
 }
 
@@ -76,7 +76,7 @@ function initRender(
   width: number,
   height: number,
   config?: Partial<Options>
-): SvgElement {
+): Element {
   const options = applyDefaults(config);
 
   const BASE_SVG_PROPS = {
@@ -100,12 +100,11 @@ function initRender(
 
   const svg = s("svg", props);
 
-  return;
-  svg;
+  return svg;
 }
 
 async function drawNode(
-  svg: SvgElement,
+  svg: Element,
   node: GenericNode | any,
   config?: Partial<Options>
 ) {
@@ -134,92 +133,87 @@ async function drawNode(
     strokeStyle = "rgba(100,10,100,1)";
   }
 
+  const group = s("g");
+
   const rect = s("rect", {
-    x: node.x + svg.properties?.width / 2,
-    y: node.y + svg.properties?.height / 2,
+    x: node.x + svg.properties.width / 2,
+    y: node.y + svg.properties.height / 2,
     width: node.width,
     height: node.height,
     rx: 5,
     ry: 5,
+    stroke: strokeStyle,
+    fill: fillStyle,
+    "stroke-width": options.lineStrokeWidth,
   });
+
+  group.children.push(rect);
 
   drawEmbedded(svg, node);
   drawMarkdownEmbed(svg, node);
 
-  ctx.lineWidth = options.nodeStrokeWidth;
-  ctx.stroke();
-  ctx.fill();
-  ctx.closePath();
-
-  ctx.fillStyle = "rgba(0, 0, 0, 1)";
+  // ctx.fillStyle = "rgba(0, 0, 0, 1)";
   if (node.label) {
-    ctx.fillText(
-      node.label,
-      node.x + 5 + canvas.width / 2,
-      node.y + 20 + canvas.height / 2
-    );
+    // ctx.fillText(
+    //   node.label,
+    //   node.x + 5 + canvas.width / 2,
+    //   node.y + 20 + canvas.height / 2
+    // );
   }
 
   if (node.type === "text" && node.text) {
-    ctx.fillText(
-      node.text,
-      node.x + 5 + canvas.width / 2,
-      node.y + 40 + canvas.height / 2
-    );
+    // ctx.fillText(
+    //   node.text,
+    //   node.x + 5 + canvas.width / 2,
+    //   node.y + 40 + canvas.height / 2
+    // );
   }
 
-  svg.children.push(rect);
+  svg.children.push(group);
 }
 
 function drawEdge(
-  svg: SvgElement,
+  svg: Element,
   toNode: GenericNode,
   fromNode: GenericNode,
   edge: Edge | any,
   config?: Partial<Options>
 ) {
   const options = applyDefaults(config);
-
-  ctx.lineWidth = options.lineStrokeWidth;
-  ctx.strokeStyle = "rgba(0,0,0,1)";
-
-  if (fromNode && toNode) {
+  if (svg === null || svg == undefined) return null;
+  else if (fromNode && toNode) {
     let startX =
       fromNode.x +
       (edge.fromSide == "top" || edge.fromSide == "bottom"
         ? fromNode.width / 2
         : fromNode.width) +
-      canvas.width / 2;
-    let startY = fromNode.y + fromNode.height / 2 + canvas.height / 2;
+      svg.properties!.width / 2;
+    let startY = fromNode.y + fromNode.height / 2 + svg.properties.height / 2;
     let endX =
       toNode.x +
       (edge.toSide == "top" || edge.toSide == "bottom"
         ? toNode.width / 2
         : toNode.width) +
-      canvas.width / 2;
-    let endY = toNode.y + toNode.height / 2 + canvas.height / 2;
+      svg.properties.width / 2;
+    let endY = toNode.y + toNode.height / 2 + svg.properties.height / 2;
 
     if (edge.fromSide === "left") {
-      startX = fromNode.x + canvas.width / 2;
+      startX = fromNode.x + svg.properties.width / 2;
     } else if (edge.fromSide === "top") {
-      startY = fromNode.y + canvas.height / 2;
+      startY = fromNode.y + svg.properties.height / 2;
     } else if (edge.fromSide === "bottom") {
-      startY = fromNode.y + fromNode.height + canvas.height / 2;
+      startY = fromNode.y + fromNode.height + svg.properties.height / 2;
     }
 
     if (edge.toSide === "right") {
-      endX = toNode.x + toNode.width + canvas.width / 2;
+      endX = toNode.x + toNode.width + svg.properties.width / 2;
     } else if (edge.toSide === "top") {
-      endY = toNode.y + canvas.height / 2;
+      endY = toNode.y + svg.properties.height / 2;
     } else if (edge.toSide === "bottom") {
-      endY = toNode.y + toNode.height + canvas.height / 2;
+      endY = toNode.y + toNode.height + svg.properties.height / 2;
     } else if (edge.toSide === "left") {
-      endX = toNode.x + canvas.width / 2;
+      endX = toNode.x + svg.properties.width / 2;
     }
-
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    // ctx.lineTo(endX, endY);
 
     // Change the control point logic based on fromSide/toSide
     const cp1 = {
@@ -232,41 +226,12 @@ function drawEdge(
       y: startY,
     };
 
-    ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, endX, endY);
-    ctx.stroke();
-    ctx.closePath();
-
-    const t = 1.0; // At the end of the curve
-    const dx =
-      3 * (1 - t) * (1 - t) * (cp1.x - startX) +
-      6 * (1 - t) * t * (cp2.x - cp1.x) +
-      3 * t * t * (endX - cp2.x);
-    const dy =
-      3 * (1 - t) * (1 - t) * (cp1.y - startY) +
-      6 * (1 - t) * t * (cp2.y - cp1.y) +
-      3 * t * t * (endY - cp2.y);
-    const angle = Math.atan2(dy, dx);
-
-    // Draw arrowhead
-    const headlen = 20; // length of head in pixels
-    ctx.beginPath();
-    ctx.moveTo(endX, endY);
-    ctx.lineTo(
-      endX - headlen * Math.cos(angle - Math.PI / 6),
-      endY - headlen * Math.sin(angle - Math.PI / 6)
-    );
-    ctx.lineTo(
-      endX - headlen * Math.cos(angle + Math.PI / 6),
-      endY - headlen * Math.sin(angle + Math.PI / 6)
-    );
-    ctx.lineTo(endX, endY);
-    ctx.lineTo(
-      endX - headlen * Math.cos(angle - Math.PI / 6),
-      endY - headlen * Math.sin(angle - Math.PI / 6)
-    );
-    ctx.stroke();
-    ctx.fill();
+    const line = s("path", {
+      d: `M ${startX} ${startY} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${endX} ${endY}`,
+      stroke: "black",
+      "stroke-width": options.lineStrokeWidth,
+      fill: "none",
+    });
+    svg.children.push(line);
   }
-
-  svg.children.push(arrow);
 }

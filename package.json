@@ -97,6 +97,8 @@
     "@types/hast-format": "^2.3.0",
     "hast-util-to-html": "^9.0.1",
     "hastscript": "^9.0.0",
+    "mdast-util-from-markdown": "^2.0.1",
+    "mdast-util-to-hast": "^13.2.0",
     "rehype-stringify": "^10.0.0",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.0",
