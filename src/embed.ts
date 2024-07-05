@@ -6,6 +6,7 @@ import { toHast } from "mdast-util-to-hast";
 
 import { GenericNode } from "@trbn/jsoncanvas";
 // import { applyDefaults, Options } from "./options";
+import { getCanvasFromEmbed } from "./plugin";
 
 const imagesLoaded = [] as Array<any>;
 
@@ -39,8 +40,7 @@ export async function drawEmbedded(svg: Element, node: GenericNode | any) {
 export async function drawMarkdownEmbed(svg: Element, node: GenericNode | any) {
   if (node.type === "file" && svg) {
     if (node.file.match(/\.(md|mdx)$/i)) {
-      const resp = await fetch(node.file);
-      const mdFile = await resp.text();
+      const mdFile = await getCanvasFromEmbed(node.file);
 
       const mdast = fromMarkdown(mdFile);
       const hast = toHast(mdast);

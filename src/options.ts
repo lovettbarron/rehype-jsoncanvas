@@ -10,6 +10,13 @@ export interface Options {
   openEmbededInNewTab: boolean;
 
   /**
+   * Define an asset path where the .canvas files exists. This will add the asset path before the filename. Otherwise uses cwd.process() path + filename
+   *
+   * Defaults to null
+   */
+  assetPath: string | null;
+
+  /**
    * Render mode. Determines the canvas output mode
    *
    * Defaults to canvas
@@ -47,6 +54,7 @@ export function applyDefaults(config: Partial<Options> = {}): Options {
       config.openEmbededInNewTab === undefined
         ? true
         : config.openEmbededInNewTab,
+    assetPath: config.assetPath === undefined ? "public" : config.assetPath,
     renderMode: config.renderMode === undefined ? "canvas" : config.renderMode,
     canvasBuffer: config.canvasBuffer === undefined ? 30 : config.canvasBuffer,
     nodeStrokeWidth:

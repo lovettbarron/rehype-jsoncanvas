@@ -35,7 +35,7 @@ export function validate(jsonCanvasData: JSONCanvas) {
 export function render(
   jsc: JSONCanvas,
   config?: Partial<Options>
-): String | any | null {
+): Element | null {
   const options = applyDefaults(config);
 
   const { canvasWidth, canvasHeight, offsetX, offsetY } =
@@ -62,10 +62,10 @@ export function render(
   return checkImagesLoaded(() => renderToBuffer(svg));
 }
 
-function renderToBuffer(svg: Element, config?: Partial<Options>) {
+function renderToBuffer(svg: Element, config?: Partial<Options>): Element {
   const options = applyDefaults(config);
   console.log("Rendering", svg, options);
-  return null;
+  return svg;
 }
 
 function initRender(
@@ -89,9 +89,12 @@ function initRender(
 
   const props = {
     ...BASE_SVG_PROPS,
-    width: width as number,
-    height: height as number,
+    width: "100%",
+    height: "100%",
+    renWidth: width as number,
+    renHeight: height as number,
     viewBox: `0 0 ${width} ${height}`,
+    preserveAspectRatio: "none",
   };
 
   const svg = s("svg", props);
@@ -132,8 +135,8 @@ async function drawNode(
   const group = s("g");
 
   const rect = s("rect", {
-    x: node.x + <number>svg.properties!.width / 2,
-    y: node.y + <number>svg.properties!.height / 2,
+    x: node.x + <number>svg.properties!.renWidth / 2,
+    y: node.y + <number>svg.properties!.renHeight / 2,
     width: node.width,
     height: node.height,
     rx: 5,
@@ -178,8 +181,8 @@ function drawEdge(
   const options = applyDefaults(config);
   if (svg === null || svg == undefined) return;
 
-  const cWidth = <number>svg.properties.width || (1 as number);
-  const cHeight = <number>svg.properties.height || (1 as number);
+  const cWidth = <number>svg.properties.renWidth || (1 as number);
+  const cHeight = <number>svg.properties.renHeight || (1 as number);
 
   if (fromNode && toNode) {
     let startX =

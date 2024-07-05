@@ -26,7 +26,7 @@ const md = await unified()
   .use(mdast2hast)
   .use(remarkGfm)
   .use(remarkRehype)
-  .use(rehypeJsonCanvas)
+  .use(rehypeJsonCanvas, { assetPath: "public" })
   .use(compiler, production)
   .process(markdown);
 ```

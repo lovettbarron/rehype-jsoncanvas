@@ -1,11 +1,14 @@
-import type { Plugin } from "unified";
-import type { Element, ElementContent, Root } from "hast";
-import { fromHtmlIsomorphic } from "hast-util-from-html-isomorphic";
-import { visit } from "unist-util-visit";
+import path from "path";
 import fs from "fs";
+import type { Plugin } from "unified";
+import type { Element, Root } from "hast";
+// import { fromHtmlIsomorphic } from "hast-util-from-html-isomorphic";
+import { visit } from "unist-util-visit";
 import { validate, render } from "./jsoncanvas";
 import JSONCanvas from "@trbn/jsoncanvas";
+import { h } from "hastscript";
 
+import { applyDefaults, Options } from "./options";
 /*
 
 Let's think this through.
@@ -46,10 +49,8 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
 
     for (const node of nodesToReplace) {
       const canvasPath = node.properties.src as string;
-      console.log("Detected", canvasPath);
       let canvasMarkdown = await getCanvasFromEmbed(canvasPath);
 
-      console.log("Got markdown", canvasMarkdown);
       const jsonCanvasFromString = JSONCanvas.fromString(canvasMarkdown);
 
       let canvas;
@@ -57,40 +58,53 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
       if (validate(jsonCanvasFromString)) {
         canvas = render(jsonCanvasFromString, {});
       } else {
-        canvas = "<div>Not a properly formatted JsonCanvas</div>";
+        canvas = h("div", "<div>Not a properly formatted JsonCanvas</div>");
       }
 
       console.log(canvas);
 
-      const canvasHast = fromHtmlIsomorphic(
-        `<img alt='' src='${canvas}' style='width:100%' />`,
-        {
-          fragment: true,
-        }
-      );
+      // const canvasHast = fromHtmlIsomorphic(
+      //   `<img alt='' src='${canvas}' style='width:100%' />`,
+      //   {
+      //     fragment: true,
+      //   }
+      // );
       node.properties = {
         ...node.properties,
       };
       node.tagName = "div";
-      node.children = canvasHast.children as ElementContent[];
+      node.children = [];
+      node.children.push(canvas!); //canvasHast.children as ElementContent[];
     }
   };
 };
 
-async function getCanvasFromEmbed(path: string): Promise<string> {
+export async function getCanvasFromEmbed(
+  markdownPath: string,
+  config?: Partial<Options>
+): Promise<string> {
+  const options = applyDefaults(config);
   let canvasMarkdown = "Loading";
-  const webcheck = path.trim().toLowerCase();
+  const webcheck = markdownPath.trim().toLowerCase();
 
   if (webcheck.startsWith("https://") || typeof window !== "undefined") {
-    await fetch(path)
+    await fetch(markdownPath)
       .then((res) => res.text())
       .then((text) => (canvasMarkdown = text));
   } else {
     // To accomodate ssr
-    canvasMarkdown = fs.readFileSync(path, {
-      encoding: "utf8",
-      flag: "r",
-    });
+    const ssrPath = options.assetPath
+      ? path.join(process.cwd(), options.assetPath, markdownPath)
+      : path.join(process.cwd(), markdownPath);
+    console.log("File Path", ssrPath);
+    try {
+      canvasMarkdown = fs.readFileSync(ssrPath, {
+        encoding: "utf8",
+        flag: "r",
+      });
+    } catch (err) {
+      console.log("No Canvas File Found. Try using the assetPath option!", err);
+    }
   }
   if (canvasMarkdown === null) return "";
 
