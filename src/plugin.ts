@@ -1,5 +1,5 @@
-import fs from "fs"
-import path from "path"
+import fs from "node:fs"
+import path from "node:path"
 import JSONCanvas from "@trbn/jsoncanvas"
 import type { Element, Root } from "hast"
 import { h } from "hastscript"
@@ -53,7 +53,7 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
 
       const jsonCanvasFromString = JSONCanvas.fromString(canvasMarkdown)
 
-      let canvas
+      let canvas = null
 
       if (validate(jsonCanvasFromString)) {
         canvas = render(jsonCanvasFromString, {})
@@ -61,20 +61,13 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
         canvas = h("div", "<div>Not a properly formatted JsonCanvas</div>")
       }
 
-      console.log(canvas)
-
-      // const canvasHast = fromHtmlIsomorphic(
-      //   `<img alt='' src='${canvas}' style='width:100%' />`,
-      //   {
-      //     fragment: true,
-      //   }
-      // );
+      if (!canvas) return
       node.properties = {
         ...node.properties,
       }
       node.tagName = "div"
       node.children = []
-      node.children.push(canvas!) //canvasHast.children as ElementContent[];
+      node.children.push(canvas)
     }
   }
 }
@@ -90,7 +83,9 @@ export async function getCanvasFromEmbed(
   if (webcheck.startsWith("https://") || typeof window !== "undefined") {
     await fetch(markdownPath)
       .then((res) => res.text())
-      .then((text) => (canvasMarkdown = text))
+      .then((text) => {
+        canvasMarkdown = text
+      })
   } else {
     // To accomodate ssr
     const ssrPath = options.assetPath

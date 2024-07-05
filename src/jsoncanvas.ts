@@ -5,20 +5,20 @@ import type { Edge, GenericNode, JSONCanvas } from "@trbn/jsoncanvas"
 
 import { type Options, applyDefaults } from "./options"
 
-import { checkImagesLoaded, drawEmbedded, drawMarkdownEmbed } from "./embed"
+import { drawEmbedded, drawMarkdownEmbed } from "./embed"
 
 function calculateMinimumCanvasSize(canvas: JSONCanvas) {
-  let minX = Number.POSITIVE_INFINITY,
-    minY = Number.POSITIVE_INFINITY,
-    maxX = Number.NEGATIVE_INFINITY,
-    maxY = Number.NEGATIVE_INFINITY
+  let minX = Number.POSITIVE_INFINITY
+  let minY = Number.POSITIVE_INFINITY
+  let maxX = Number.NEGATIVE_INFINITY
+  let maxY = Number.NEGATIVE_INFINITY
 
-  canvas.getNodes().forEach((node) => {
+  for (const node in canvas.getNodes()) {
     minX = Math.min(minX, node.x)
     minY = Math.min(minY, node.y)
     maxX = Math.max(maxX, node.x + node.width)
     maxY = Math.max(maxY, node.y + node.height)
-  })
+  }
 
   const canvasWidth = maxX - minX
   const canvasHeight = maxY - minY
@@ -47,19 +47,19 @@ export function render(
   if (svg === null) return null
 
   // Draw nodes
-  jsc.getNodes().forEach((node) => {
+  for (const node in jsc.getNodes()) {
     drawNode(svg, node, options)
-  })
+  }
 
   // Draw Edges
-  jsc.getEdges().forEach((edge) => {
+  for (const edge in jsc.getEdges()) {
     const fromNode = jsc.getNodes().find((node) => node.id === edge.fromNode)
     const toNode = jsc.getNodes().find((node) => node.id === edge.toNode)
     if (toNode !== undefined && fromNode !== undefined)
       drawEdge(svg, toNode, fromNode, edge, options)
-  })
+  }
 
-  return checkImagesLoaded(() => renderToBuffer(svg))
+  return renderToBuffer(svg)
 }
 
 function renderToBuffer(svg: Element, config?: Partial<Options>): Element {
@@ -197,7 +197,7 @@ function drawEdge(
   config?: Partial<Options>,
 ) {
   const options = applyDefaults(config)
-  if (svg === null || svg == undefined) return
+  if (svg === null || svg === undefined) return
 
   const cWidth = <number>svg.properties.renWidth || (1 as number)
   const cHeight = <number>svg.properties.renHeight || (1 as number)
