@@ -7,13 +7,13 @@ import { type Options, applyDefaults } from "./options"
 
 import { drawEmbedded, drawMarkdownEmbed } from "./embed"
 
-function calculateMinimumCanvasSize(canvas: JSONCanvas) {
+function calculateMinimumCanvasSize(jsc: JSONCanvas) {
   let minX = Number.POSITIVE_INFINITY
   let minY = Number.POSITIVE_INFINITY
   let maxX = Number.NEGATIVE_INFINITY
   let maxY = Number.NEGATIVE_INFINITY
 
-  for (const node in canvas.getNodes()) {
+  for (const node of jsc.getNodes()) {
     minX = Math.min(minX, node.x)
     minY = Math.min(minY, node.y)
     maxX = Math.max(maxX, node.x + node.width)
@@ -47,12 +47,12 @@ export function render(
   if (svg === null) return null
 
   // Draw nodes
-  for (const node in jsc.getNodes()) {
+  for (const node of jsc.getNodes()) {
     drawNode(svg, node, options)
   }
 
   // Draw Edges
-  for (const edge in jsc.getEdges()) {
+  for (const edge of jsc.getEdges()) {
     const fromNode = jsc.getNodes().find((node) => node.id === edge.fromNode)
     const toNode = jsc.getNodes().find((node) => node.id === edge.toNode)
     if (toNode !== undefined && fromNode !== undefined)
@@ -151,7 +151,7 @@ async function drawNode(
   drawEmbedded(svg, group, node)
   drawMarkdownEmbed(svg, group, node)
 
-  // ctx.fillStyle = "rgba(0, 0, 0, 1)";
+  // Group Label
   if (node.label) {
     const t = s(
       "text",
@@ -167,6 +167,7 @@ async function drawNode(
     group.children.push(t)
   }
 
+  // Node within a rect
   if (node.type === "text" && node.text) {
     const t = s(
       "text",
