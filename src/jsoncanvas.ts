@@ -148,24 +148,24 @@ async function drawNode(
 
   group.children.push(rect);
 
-  drawEmbedded(svg, node);
-  drawMarkdownEmbed(svg, node);
+  drawEmbedded(svg, group, node);
+  drawMarkdownEmbed(svg, group, node);
 
   // ctx.fillStyle = "rgba(0, 0, 0, 1)";
   if (node.label) {
-    // ctx.fillText(
-    //   node.label,
-    //   node.x + 5 + canvas.width / 2,
-    //   node.y + 20 + canvas.height / 2
-    // );
+    s("text", {
+      x: node.x + 5 + <number>svg.properties!.renWidth / 2,
+      y: node.y + 10 + <number>svg.properties!.renHeight / 2,
+      children: node.label,
+    });
   }
 
   if (node.type === "text" && node.text) {
-    // ctx.fillText(
-    //   node.text,
-    //   node.x + 5 + canvas.width / 2,
-    //   node.y + 40 + canvas.height / 2
-    // );
+    s("text", {
+      x: node.x + 5 + <number>svg.properties!.renWidth / 2,
+      y: node.y + 40 + <number>svg.properties!.renHeight / 2,
+      children: node.label,
+    });
   }
 
   svg.children.push(group);
