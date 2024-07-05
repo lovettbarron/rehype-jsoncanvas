@@ -1,9 +1,9 @@
-import { rehypeJsonCanvas } from "./plugin";
+import { rehypeJsonCanvas } from "./plugin"
 
-export type { Options } from "./options";
+export type { Options } from "./options"
 
-export { rehypeJsonCanvas };
-export default rehypeJsonCanvas;
+export { rehypeJsonCanvas }
+export default rehypeJsonCanvas
 
 // CommonJS default export hack
 /* eslint-env commonjs */

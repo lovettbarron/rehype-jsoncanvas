@@ -7,42 +7,42 @@ export interface Options {
    *
    * Defaults to true
    */
-  openEmbededInNewTab: boolean;
+  openEmbededInNewTab: boolean
 
   /**
    * Define an asset path where the .canvas files exists. This will add the asset path before the filename. Otherwise uses cwd.process() path + filename
    *
    * Defaults to null
    */
-  assetPath: string | null;
+  assetPath: string | null
 
   /**
    * Render mode. Determines the canvas output mode
    *
    * Defaults to canvas
    */
-  renderMode: "svg" | "image" | "canvas";
+  renderMode: "svg" | "image" | "canvas"
 
   /**
    * Canvas Buffer
    *
    * Defaults to 30
    */
-  canvasBuffer: number;
+  canvasBuffer: number
 
   /**
    * Canvas node stroke width
    *
    * Defaults to 3
    */
-  nodeStrokeWidth: number;
+  nodeStrokeWidth: number
 
   /**
    * Canvas line stroke width
    *
    * Defaults to 5
    */
-  lineStrokeWidth: number;
+  lineStrokeWidth: number
 }
 
 /**
@@ -61,5 +61,5 @@ export function applyDefaults(config: Partial<Options> = {}): Options {
       config.nodeStrokeWidth === undefined ? 3 : config.nodeStrokeWidth,
     lineStrokeWidth:
       config.lineStrokeWidth === undefined ? 5 : config.lineStrokeWidth,
-  };
+  }
 }
