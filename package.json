@@ -1,6 +1,6 @@
 {
   "name": "rehype-jsoncanvas",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "rehype plugin to render inline json-canvas elements",
   "license": "MIT",
   "keywords": [
