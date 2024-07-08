@@ -67,6 +67,7 @@
     "gen:docs": "rm -rf ./docs/api && typedoc --options typedoc.cjs",
     "prepublishOnly": "npm run build",
     "prepare": "lefthook install",
+    "change": "changeset",
     "release": "npm run prepublishOnly && changeset publish",
     "devpub": "yalc push --scripts --update --replace"
   },
