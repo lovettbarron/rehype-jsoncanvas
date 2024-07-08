@@ -1,14 +1,14 @@
-import fs from "node:fs"
-import path from "node:path"
-import JSONCanvas from "@trbn/jsoncanvas"
-import type { Element, Root } from "hast"
-import { h } from "hastscript"
-import type { Plugin } from "unified"
+import fs from "node:fs";
+import path from "node:path";
+import JSONCanvas from "@trbn/jsoncanvas";
+import type { Element, Root } from "hast";
+import { h } from "hastscript";
+import type { Plugin } from "unified";
 // import { fromHtmlIsomorphic } from "hast-util-from-html-isomorphic";
-import { visit } from "unist-util-visit"
-import { render, validate } from "./jsoncanvas"
+import { visit } from "unist-util-visit";
+import { render, validate } from "./jsoncanvas";
 
-import { type Options, applyDefaults } from "./options"
+import { type Options, applyDefaults } from "./options";
 /*
 
 Let's think this through.
@@ -32,76 +32,80 @@ Things decide:
 
 export const rehypeJsonCanvas: Plugin<[], Root> = () => {
   return async (tree) => {
-    const nodesToReplace = [] as Array<Element>
+    const nodesToReplace = [] as Array<Element>;
 
     // Iterate over the markdown file as tree
     visit(tree, "element", (node, index) => {
-      console.log(node, index)
+      console.log(node, index);
 
       // only match image embeds
       if (node.tagName !== "img" || index === undefined) {
-        return
+        return;
       }
-      console.log("Adding", node)
-      nodesToReplace.push(node)
+
+      // This makes sure that the file in the image tag is a canvas
+      const canvasCheck = node.properties.src as string;
+      if (!canvasCheck.includes(".canvas")) return;
+
+      nodesToReplace.push(node);
       // index = index += 1;
-    })
+    });
 
     for (const node of nodesToReplace) {
-      const canvasPath = node.properties.src as string
-      const canvasMarkdown = await getCanvasFromEmbed(canvasPath)
+      const canvasPath = node.properties.src as string;
+      const canvasMarkdown = await getCanvasFromEmbed(canvasPath);
 
-      const jsonCanvasFromString = JSONCanvas.fromString(canvasMarkdown)
+      const jsonCanvasFromString = JSONCanvas.fromString(canvasMarkdown);
 
-      let canvas = null
+      let canvas = null;
 
       if (validate(jsonCanvasFromString)) {
-        canvas = render(jsonCanvasFromString, {})
+        canvas = render(jsonCanvasFromString, {});
       } else {
-        canvas = h("div", "<div>Not a properly formatted JsonCanvas</div>")
+        canvas = h("div", "<div>Not a properly formatted JsonCanvas</div>");
       }
 
-      if (!canvas) return
+      if (!canvas) return;
       node.properties = {
         ...node.properties,
-      }
-      node.tagName = "div"
-      node.children = []
-      node.children.push(canvas)
+      };
+      node.tagName = "div";
+      node.children = [];
+      node.children.push(canvas);
     }
-  }
-}
+  };
+};
 
 export async function getCanvasFromEmbed(
   markdownPath: string,
-  config?: Partial<Options>,
+  config?: Partial<Options>
 ): Promise<string> {
-  const options = applyDefaults(config)
-  let canvasMarkdown = "Loading"
-  const webcheck = markdownPath.trim().toLowerCase()
+  const options = applyDefaults(config);
+  let canvasMarkdown = "Loading";
+  const webcheck = markdownPath.trim().toLowerCase();
 
   if (webcheck.startsWith("https://") || typeof window !== "undefined") {
     await fetch(markdownPath)
       .then((res) => res.text())
       .then((text) => {
-        canvasMarkdown = text
-      })
+        canvasMarkdown = text;
+      });
   } else {
     // To accomodate ssr
     const ssrPath = options.assetPath
       ? path.join(process.cwd(), options.assetPath, markdownPath)
-      : path.join(process.cwd(), markdownPath)
-    console.log("File Path", ssrPath)
+      : path.join(process.cwd(), markdownPath);
+    console.log("File Path", ssrPath);
     try {
       canvasMarkdown = fs.readFileSync(ssrPath, {
         encoding: "utf8",
         flag: "r",
-      })
+      });
     } catch (err) {
-      console.log("No Canvas File Found. Try using the assetPath option!", err)
+      console.log("No Canvas File Found. Try using the assetPath option!", err);
     }
   }
-  if (canvasMarkdown === null) return ""
+  if (canvasMarkdown === null) return "";
 
-  return canvasMarkdown
+  return canvasMarkdown;
 }

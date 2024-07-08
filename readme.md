@@ -1,10 +1,20 @@
 # rehype-jsoncanvas
 
-NOTE: This project is currently in development/prove of concept stage and isn't usable in a project. But feel free to fork, PR, or add issues if you have requests.
+NOTE: This project is currently in active development/prove of concept stage and isn't usable in a project. But feel free to fork, PR, or add issues if you have requests and I will respond quickly.
+
+Its up on NPM but might not work in your environment/context. Let me know if so
+
+Finally, I know it doesn't work on react-markdown atm because it doesn't support async plugins. I'm going to try and fix this, but suggest using the unified ecosystem directly.
 
 ## What does this do?
 
 A rehype plugin that renders a [json-canvas](https://jsoncanvas.org/) element, probably downstream from a markdown file.
+
+Rendered Canvas inside of Obsidian
+![](./example/test-for-plugin.png)
+
+Rendered canvas as svg on [next shims](https://github.com/lovettbarron/shims)
+![](./example/currentrender.png)
 
 ## Why does it do it?
 
