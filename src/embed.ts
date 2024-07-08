@@ -1,3 +1,4 @@
+import path from "node:path"
 import type { Element } from "hast"
 import { s } from "hastscript"
 
@@ -8,12 +9,20 @@ import type { GenericNode } from "@trbn/jsoncanvas"
 // import { applyDefaults, Options } from "./options";
 import { getCanvasFromEmbed } from "./plugin"
 
+import { type Options, applyDefaults } from "./options"
+
 // This renders out the images
 export async function drawEmbedded(
   svg: Element,
   grp: Element,
   node: GenericNode | any,
+  config?: Partial<Options>,
 ) {
+  const options = applyDefaults(config)
+  console.log(
+    "Test",
+    options.assetPath ? path.join(options.assetPath, node.file) : node.file,
+  )
   if (node.type === "file" && svg) {
     if (node.file.match(/\.(jpg|jpeg|png|gif)$/i)) {
       const image = s("image", {
@@ -34,10 +43,11 @@ export async function drawMarkdownEmbed(
   svg: Element,
   grp: Element,
   node: GenericNode | any,
+  config?: Partial<Options>,
 ) {
   if (node.type === "file" && svg) {
     if (node.file.match(/\.(md|mdx)$/i)) {
-      const mdFile = await getCanvasFromEmbed(node.file)
+      const mdFile = await getCanvasFromEmbed(node.file, config)
 
       const mdast = fromMarkdown(mdFile)
       const hast = toHast(mdast)

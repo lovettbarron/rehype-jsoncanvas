@@ -59,12 +59,6 @@ export function render(
       drawEdge(svg, toNode, fromNode, edge, options)
   }
 
-  return renderToBuffer(svg)
-}
-
-function renderToBuffer(svg: Element, config?: Partial<Options>): Element {
-  const options = applyDefaults(config)
-  console.log("Rendering", svg, options)
   return svg
 }
 
@@ -74,7 +68,6 @@ function initRender(
   config?: Partial<Options>,
 ): Element {
   const options = applyDefaults(config)
-  console.log(options)
   const BASE_SVG_PROPS = {
     version: "1.1",
     xmlns: "http://www.w3.org/2000/svg",
@@ -148,8 +141,8 @@ async function drawNode(
 
   group.children.push(rect)
 
-  drawEmbedded(svg, group, node)
-  drawMarkdownEmbed(svg, group, node)
+  drawEmbedded(svg, group, node, config)
+  drawMarkdownEmbed(svg, group, node, config)
 
   // Group Label
   if (node.label) {

@@ -61,7 +61,7 @@ export const rehypeJsonCanvas: Plugin<[], Root> = (
       let canvas = null
 
       if (validate(jsonCanvasFromString)) {
-        canvas = render(jsonCanvasFromString, {})
+        canvas = render(jsonCanvasFromString, config)
       } else {
         canvas = h("div", "Not a properly formatted JsonCanvas")
       }
@@ -82,9 +82,13 @@ export async function getCanvasFromEmbed(
   config?: Partial<Options>,
 ): Promise<string> {
   const options = applyDefaults(config)
-  console.log(options)
   let canvasMarkdown = ""
   const webcheck = markdownPath.trim().toLowerCase()
+
+  // https://stackoverflow.com/questions/190852/how-can-i-get-file-extensions-with-javascript/12900504#12900504
+  const extension = webcheck.slice(
+    (Math.max(0, webcheck.lastIndexOf(".")) || Number.POSITIVE_INFINITY) + 1,
+  )
 
   if (webcheck.startsWith("https://") || typeof window !== "undefined") {
     await fetch(markdownPath)
@@ -93,11 +97,15 @@ export async function getCanvasFromEmbed(
         canvasMarkdown = text
       })
   } else {
-    // To accomodate ssr
-    const ssrPath = options.assetPath
-      ? path.join(process.cwd(), options.assetPath, markdownPath)
-      : path.join(process.cwd(), markdownPath)
+    const opPath =
+      extension === "md" ? options.mdPath : options.assetPath || null
 
+    console.log("opPath", opPath)
+    // To accomodate ssr
+    const ssrPath = opPath
+      ? path.join(process.cwd(), opPath, markdownPath)
+      : path.join(process.cwd(), markdownPath)
+    console.log(ssrPath)
     try {
       canvasMarkdown = fs.readFileSync(ssrPath, {
         encoding: "utf8",

@@ -17,6 +17,13 @@ export interface Options {
   assetPath?: string | null
 
   /**
+   * Define an markdown path where the .md files will be searched for WHEN EMBEDDING ONLY. This will add the md path before the filename. Otherwise uses assetPath defaults
+   *
+   * Defaults to null
+   */
+  mdPath?: string | null
+
+  /**
    * Render mode. Determines the canvas output mode
    *
    * Defaults to canvas
@@ -55,6 +62,7 @@ export function applyDefaults(config: Partial<Options> = {}): Options {
         ? true
         : config.openEmbededInNewTab,
     assetPath: config.assetPath === undefined ? null : config.assetPath,
+    mdPath: config.mdPath === undefined ? config.assetPath : config.mdPath,
     renderMode: config.renderMode === undefined ? "canvas" : config.renderMode,
     canvasBuffer: config.canvasBuffer === undefined ? 30 : config.canvasBuffer,
     nodeStrokeWidth:
