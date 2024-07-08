@@ -30,14 +30,14 @@ Things decide:
 
 */
 
-export const rehypeJsonCanvas: Plugin<[], Root> = () => {
+export const rehypeJsonCanvas: Plugin<[], Root> = (
+  config?: Partial<Options>,
+) => {
   return async (tree) => {
     const nodesToReplace = [] as Array<Element>
 
     // Iterate over the markdown file as tree
     visit(tree, "element", (node, index) => {
-      console.log(node, index)
-
       // only match image embeds
       if (node.tagName !== "img" || index === undefined) {
         return
@@ -53,8 +53,9 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
 
     for (const node of nodesToReplace) {
       const canvasPath = node.properties.src as string
-      const canvasMarkdown = await getCanvasFromEmbed(canvasPath)
+      const canvasMarkdown = await getCanvasFromEmbed(canvasPath, config)
 
+      if (canvasMarkdown.length < 1) return
       const jsonCanvasFromString = JSONCanvas.fromString(canvasMarkdown)
 
       let canvas = null
@@ -62,7 +63,7 @@ export const rehypeJsonCanvas: Plugin<[], Root> = () => {
       if (validate(jsonCanvasFromString)) {
         canvas = render(jsonCanvasFromString, {})
       } else {
-        canvas = h("div", "<div>Not a properly formatted JsonCanvas</div>")
+        canvas = h("div", "Not a properly formatted JsonCanvas")
       }
 
       if (!canvas) return
@@ -81,7 +82,8 @@ export async function getCanvasFromEmbed(
   config?: Partial<Options>,
 ): Promise<string> {
   const options = applyDefaults(config)
-  let canvasMarkdown = "Loading"
+  console.log(options)
+  let canvasMarkdown = ""
   const webcheck = markdownPath.trim().toLowerCase()
 
   if (webcheck.startsWith("https://") || typeof window !== "undefined") {
@@ -95,7 +97,7 @@ export async function getCanvasFromEmbed(
     const ssrPath = options.assetPath
       ? path.join(process.cwd(), options.assetPath, markdownPath)
       : path.join(process.cwd(), markdownPath)
-    console.log("File Path", ssrPath)
+
     try {
       canvasMarkdown = fs.readFileSync(ssrPath, {
         encoding: "utf8",

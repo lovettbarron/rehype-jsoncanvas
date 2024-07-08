@@ -26,7 +26,21 @@ Rehype is a toolkit in the unified.js ecosystem that works to parse html trees a
 
 Parses the html content (If it's from markdown, usually after the markdown has been translates), then renders a canvas
 
-## Use
+## Install and Use
+
+However you use NPM, basically
+
+```
+npm i rehype-jsoncanvas
+```
+
+And then import it
+
+```
+import rehypeJsonCanvas from "rehype-jsoncanvas"
+```
+
+Then use it however you use rehype plugins.
 
 This is an example of using Unified to render out the base.md markdown. Basically you need to process the markdown first, then transform the markdown rehype. The plugin will then look for rendered images with a .canvas extension to render out the jsonCanvas.
 
