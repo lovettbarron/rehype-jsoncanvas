@@ -97,13 +97,15 @@ export async function getCanvasFromEmbed(
         canvasMarkdown = text
       })
   } else if (options.ssrPath !== undefined) {
-    const opPath =
-      extension === "md" ? options.mdPath : options.assetPath || null
+    const pathArr = [process.cwd()]
 
-    const ssrPath = opPath
-      ? path.join(process.cwd(), options.ssrPath, opPath, markdownPath)
-      : path.join(process.cwd(), options.ssrPath, markdownPath)
-    console.log(ssrPath)
+    if (options.ssrPath && extension !== "md") pathArr.push(options.ssrPath)
+    if (extension === "md" && options.mdPath) pathArr.push(options.mdPath)
+
+    pathArr.push(markdownPath)
+
+    const ssrPath = path.join(...pathArr)
+
     try {
       canvasMarkdown = fs.readFileSync(ssrPath, {
         encoding: "utf8",
