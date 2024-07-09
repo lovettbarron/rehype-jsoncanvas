@@ -34,7 +34,7 @@ export async function drawEmbedded(
         y: 5 + node.y + <number>svg.properties.renHeight / 2,
         width: node.width - 10,
         height: node.height - 10,
-        "xlink:href": imgPath,
+        "xlink:href": `/${imgPath}`,
       })
 
       grp.children.push(image)
