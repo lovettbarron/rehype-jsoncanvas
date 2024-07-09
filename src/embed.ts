@@ -25,12 +25,16 @@ export async function drawEmbedded(
   )
   if (node.type === "file" && svg) {
     if (node.file.match(/\.(jpg|jpeg|png|gif)$/i)) {
+      const imgPath = options.assetPath
+        ? path.join(options.assetPath, node.file)
+        : node.file
+
       const image = s("image", {
         x: 5 + node.x + <number>svg.properties.renWidth / 2,
         y: 5 + node.y + <number>svg.properties.renHeight / 2,
         width: node.width - 10,
         height: node.height - 10,
-        "xlink:href": node.file,
+        "xlink:href": imgPath,
       })
 
       grp.children.push(image)

@@ -30,7 +30,7 @@ Things decide:
 
 */
 
-export const rehypeJsonCanvas: Plugin<[], Root> = (
+export const rehypeJsonCanvas: Plugin<[(Options | undefined)?], Root> = (
   config?: Partial<Options>,
 ) => {
   return async (tree) => {
@@ -96,15 +96,13 @@ export async function getCanvasFromEmbed(
       .then((text) => {
         canvasMarkdown = text
       })
-  } else {
+  } else if (options.ssrPath !== undefined) {
     const opPath =
       extension === "md" ? options.mdPath : options.assetPath || null
 
-    console.log("opPath", opPath)
-    // To accomodate ssr
     const ssrPath = opPath
-      ? path.join(process.cwd(), opPath, markdownPath)
-      : path.join(process.cwd(), markdownPath)
+      ? path.join(process.cwd(), options.ssrPath, opPath, markdownPath)
+      : path.join(process.cwd(), options.ssrPath, markdownPath)
     console.log(ssrPath)
     try {
       canvasMarkdown = fs.readFileSync(ssrPath, {
@@ -114,6 +112,10 @@ export async function getCanvasFromEmbed(
     } catch (err) {
       console.log("No Canvas File Found. Try using the assetPath option!", err)
     }
+  } else {
+    console.log(
+      "If you're running this plugin via serverside renering, you'll need to define an ssrPath relative to your project file. Take a look at the readme or nextjs project for examples.",
+    )
   }
   if (canvasMarkdown === null) return ""
 
