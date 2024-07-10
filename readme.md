@@ -98,7 +98,8 @@ Defines the stroke width of node box borders
 
 Defines the stroke width of lines between nodes.
 
-####options.openEmbededInNewTab
+#### options.openEmbededInNewTab
+
 Currently doesn't do anything. Will basically define whether clicking on an embedded image or markdown file will open as a new tab.
 
 ## References along the way
