@@ -72,25 +72,30 @@ See [base.md](example/base.md) for an examples. A simple nextjs app lives [in th
 
 The [options](src/options.ts) file has everything, but I'll just share the used ones currently. Please note that these are likely to change before I hit v1.0. They currently define the path broadly, and an overview might look like this:
 
-Grab a file via filesync: ProjectDirectory/ssrPath/assetpath/filename.extension
-Grab a file via fetch: url/assetpath/filename.extension
-Read a mdfile ssr NOT stored in static directory: ProjectDirectory/mdPath/filename.md
+Grab a file via filesync: `ProjectDirectory/ssrPath/assetpath/filename.extension`
+Grab a file via fetch: `url/assetpath/filename.extension`
+Read a mdfile ssr NOT stored in static directory: `ProjectDirectory/mdPath/filename.md`
 
 There's definitely a better way to do this but...
 
-####options.ssrPath
+#### options.ssrPath
+
 Takes a string and defaults to 'public' from the nextjs ecosystem. This defines where any static files are stored within the relative project directory.
 
-####options.assetPath
+#### options.assetPath
+
 Takes a string or null, and if the .canvas and image files lives somewhere underneath the SSR path. Think of this as the relative path within your static folder as the top level directory. This is used when embedding images within the svg.
 
-####options.mdPath
+#### options.mdPath
+
 Path to markdown files relative to project directory. Assuming you don't store the markdown directory in your static folder.
 
-####options.nodeStrokeWidth
+#### options.nodeStrokeWidth
+
 Defines the stroke width of node box borders
 
-####options.lineStrokeWidth
+#### options.lineStrokeWidth
+
 Defines the stroke width of lines between nodes.
 
 ####options.openEmbededInNewTab
