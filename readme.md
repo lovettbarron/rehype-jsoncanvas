@@ -1,10 +1,6 @@
 # rehype-jsoncanvas
 
-NOTE: This project is currently in active development/prove of concept stage and isn't usable in a project. But feel free to fork, PR, or add issues if you have requests and I will respond quickly.
-
-Its up on NPM but might not work in your environment/context. Let me know if so
-
-Finally, I know it doesn't work on react-markdown atm because it doesn't support async plugins. I'm going to try and fix this, but suggest using the unified ecosystem directly.
+NOTE: This project is currently in active development/prove of concept stage and has a number of limitations. But feel free to fork, PR, or add issues if you have requests and I will respond quickly.
 
 ## What does this do?
 
@@ -28,8 +24,6 @@ Parses the html content (If it's from markdown, usually after the markdown has b
 
 ## Install and Use
 
-However you use NPM, basically
-
 ```
 npm i rehype-jsoncanvas
 ```
@@ -40,22 +34,67 @@ And then import it
 import rehypeJsonCanvas from "rehype-jsoncanvas"
 ```
 
-Then use it however you use rehype plugins.
+Then use it however you use rehype plugins. Please note, it will not work with `react-markdown` as that component doesn't currently support async rehype plugins.
 
 This is an example of using Unified to render out the base.md markdown. Basically you need to process the markdown first, then transform the markdown rehype. The plugin will then look for rendered images with a .canvas extension to render out the jsonCanvas.
 
 ```js
-const md = await unified()
-  .use(parser)
-  .use(mdast2hast)
-  .use(remarkGfm)
-  .use(remarkRehype)
-  .use(rehypeJsonCanvas, { assetPath: "public" })
-  .use(compiler, production)
-  .process(markdown);
+async function renderMarkdown(markdown: string) {
+  const md = await unified()
+    .use(parser)
+    .use(mdast2hast)
+    .use(remarkGfm)
+    .use(remarkRehype)
+    .use(rehypeRaw)
+    .use(rehypePrism)
+    .use(rehypeJsonCanvas, { ssrPath: "public", mdPath: "_content" })
+    .use(rehypeStringify)
+    .process(markdown);
+
+  return md;
+}
+const markdown = await renderMarkdown(content);
+const rendered = (await markdown.value) as string;
 ```
 
-See [base.md](example/base.md) for an examples. A simple react app lives [in this repo](hhttps://github.com/lovettbarron/shims/tree/main/rehype-jsoncanvas) to see how it might be used.
+and pull that rendered markdown into your dom somehow
+
+```jsx
+<div
+  className={markdownStyles["markdown"]}
+  dangerouslySetInnerHTML={{ __html: rendered }}
+/>
+```
+
+See [base.md](example/base.md) for an examples. A simple nextjs app lives [in this repo](hhttps://github.com/lovettbarron/shims/) to see how it might be used (rehype-jsoncanvas-ssr), though the react app doesn't currently work.
+
+## Options
+
+The [options](src/options.ts) file has everything, but I'll just share the used ones currently. Please note that these are likely to change before I hit v1.0. They currently define the path broadly, and an overview might look like this:
+
+Grab a file via filesync: ProjectDirectory/ssrPath/assetpath/filename.extension
+Grab a file via fetch: url/assetpath/filename.extension
+Read a mdfile ssr NOT stored in static directory: ProjectDirectory/mdPath/filename.md
+
+There's definitely a better way to do this but...
+
+####options.ssrPath
+Takes a string and defaults to 'public' from the nextjs ecosystem. This defines where any static files are stored within the relative project directory.
+
+####options.assetPath
+Takes a string or null, and if the .canvas and image files lives somewhere underneath the SSR path. Think of this as the relative path within your static folder as the top level directory. This is used when embedding images within the svg.
+
+####options.mdPath
+Path to markdown files relative to project directory. Assuming you don't store the markdown directory in your static folder.
+
+####options.nodeStrokeWidth
+Defines the stroke width of node box borders
+
+####options.lineStrokeWidth
+Defines the stroke width of lines between nodes.
+
+####options.openEmbededInNewTab
+Currently doesn't do anything. Will basically define whether clicking on an embedded image or markdown file will open as a new tab.
 
 ## References along the way
 
