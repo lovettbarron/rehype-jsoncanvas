@@ -72,9 +72,9 @@ See [base.md](example/base.md) for an examples. A simple nextjs app lives [in th
 
 The [options](src/options.ts) file has everything, but I'll just share the used ones currently. Please note that these are likely to change before I hit v1.0. They currently define the path broadly, and an overview might look like this:
 
-Grab a file via filesync: `ProjectDirectory/ssrPath/assetpath/filename.extension`
-Grab a file via fetch: `url/assetpath/filename.extension`
-Read a mdfile ssr NOT stored in static directory: `ProjectDirectory/mdPath/filename.md`
+- Grab a file via filesync: `ProjectDirectory/ssrPath/assetpath/filename.extension`
+- Grab a file via fetch: `url/assetpath/filename.extension`
+- Read a mdfile ssr NOT stored in static directory: `ProjectDirectory/mdPath/filename.md`
 
 There's definitely a better way to do this but...
 
